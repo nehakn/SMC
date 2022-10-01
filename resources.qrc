@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/soil_moisture" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
