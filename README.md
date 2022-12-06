@@ -9,3 +9,6 @@ Optical/ thermal input upload, intermediate parameters computation
 
 Soil moisture (SMC) product upload, SMC extraction for target area and SMC computation at high resolution using DisPATCh algorithm
 
+![sm_delhi](https://user-images.githubusercontent.com/105640974/205917305-a4338091-3231-47fc-bb53-fde3f31078b2.jpg)
+
+Sample SMC output obtained at high spatial resolution
