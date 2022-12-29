@@ -23,25 +23,15 @@
 """
 
 from asyncio.log import logger
-import gdal
 import math,os
 import numpy as np
 import pandas as pd
 import time,datetime
 
 from osgeo import gdal, osr, ogr
-import numpy as np
-import matplotlib.pyplot as plt
-# import rasterio
-# import numexpr as ne
-import pandas as pd
-# import gdalnumeric
-# import earthpy.plot as ep
-import os
-# import glob
-# import h5py
+#import matplotlib.pyplot as plt
 import csv
-from scipy.io import savemat
+#from scipy.io import savemat
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
@@ -93,7 +83,7 @@ class SoilMoisture:
         self.dlg=SoilMoistureDialog()
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&SMC')
+        self.menu = self.tr(u'&Q-DAI')
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -212,6 +202,7 @@ class SoilMoisture:
         self.dlg.pb_red.clicked.connect(self.pb_red_clicked)
         self.dlg.pb_nir.clicked.connect(self.pb_nir_clicked)
         self.dlg.pb_lst.clicked.connect(self.pb_lst_clicked)
+        self.dlg.pb_shape.clicked.connect(self.pb_shape_clicked)
         self.dlg.pb_ot_compute.clicked.connect(self.pb_ot_compute_clicked)
         self.dlg.pb_ot_close.clicked.connect(self.pb_ot_close_clicked)
 
@@ -229,18 +220,24 @@ class SoilMoisture:
         self.dlg.close()
 
     def pb_red_clicked(self):
-        global r_dataset,r_array,r_cols,r_rows,r_geoTransform,r_projection,red
+        global r_dataset,r_array,r_cols,r_rows,r_geoTransform,r_projection,red,file_dir
         red_band_filename=QFileDialog.getOpenFileName(self.dlg,'Open corrected Red band','', '*tif;*tiff;*TIF;*TIFF')
         red_band_path=red_band_filename[0]    
         r_dataset=gdal.Open(red_band_path)   
-        red_band=r_dataset.GetRasterBand(1)
-        r_rows=r_dataset.RasterXSize
-        r_cols=r_dataset.RasterYSize
-        r_geoTransform=r_dataset.GetGeoTransform()
-        r_projection=r_dataset.GetProjection()
-        r_band= r_dataset.GetRasterBand(1)
-        r_array=r_dataset.ReadAsArray() 
-        red=np.nan_to_num(r_array)
+        # red_band=r_dataset.GetRasterBand(1)
+        # r_rows=r_dataset.RasterXSize
+        # r_cols=r_dataset.RasterYSize
+        # r_geoTransform=r_dataset.GetGeoTransform()
+        # r_projection=r_dataset.GetProjection()
+        # r_band= r_dataset.GetRasterBand(1)
+        r_array=r_dataset.GetRasterBand(1).ReadAsArray().astype('float64')
+
+        # file_dir=str(QFileDialog.getExistingDirectory(red_band_path))
+        # print(file_dir)
+        # display the location from where the clipped red and nir bands are stored
+        # logger=self.dlg.tb_otinput
+        # l1='\nChosen directory for saving the tif files:'+file_dir
+        # logger.append(l1)
 
         # display the location from where red band is taken
         logger=self.dlg.tb_otinput
@@ -252,14 +249,14 @@ class SoilMoisture:
         nir_band_filename=QFileDialog.getOpenFileName(self.dlg,'Open corrected NIR band','', '*tif;*tiff;*TIF;*TIFF')
         nir_band_path=nir_band_filename[0]
         n_dataset=gdal.Open(nir_band_path)
-        nir_band=n_dataset.GetRasterBand(1)
-        n_cols=n_dataset.RasterXSize
-        n_rows=n_dataset.RasterYSize
-        n_geoTransform=n_dataset.GetGeoTransform()
-        n_projection=n_dataset.GetProjection()     
-        n_band=n_dataset.GetRasterBand(1)
-        n_array=n_dataset.ReadAsArray() 
-        nir=np.nan_to_num(n_array)
+        # nir_band=n_dataset.GetRasterBand(1)
+        # n_cols=n_dataset.RasterXSize
+        # n_rows=n_dataset.RasterYSize
+        # n_geoTransform=n_dataset.GetGeoTransform()
+        # n_projection=n_dataset.GetProjection()     
+        # n_band=n_dataset.GetRasterBand(1)
+        n_array=n_dataset.GetRasterBand(1).ReadAsArray().astype('float64') 
+        # nir=np.nan_to_num(n_array)
 
         # display the location from where nir band is taken
         logger=self.dlg.tb_otinput
@@ -271,28 +268,191 @@ class SoilMoisture:
         lst_band_filename=QFileDialog.getOpenFileName(self.dlg,'Open corrected LST band','', '*tif;*tiff;*TIF;*TIFF')
         lst_band_path=lst_band_filename[0]
         l_dataset=gdal.Open(lst_band_path)
-        lst_band=l_dataset.GetRasterBand(1)
-        l_cols=l_dataset.RasterXSize
-        l_rows=l_dataset.RasterYSize
-        l_geoTransform=l_dataset.GetGeoTransform()
-        l_projection=l_dataset.GetProjection()     
-        l_band=l_dataset.GetRasterBand(1)
-        l_array=l_dataset.ReadAsArray() 
-        lst=np.nan_to_num(l_array)
+        # lst_band=l_dataset.GetRasterBand(1)
+        # l_cols=l_dataset.RasterXSize
+        # l_rows=l_dataset.RasterYSize
+        # l_geoTransform=l_dataset.GetGeoTransform()
+        # l_projection=l_dataset.GetProjection()     
+        # l_band=l_dataset.GetRasterBand(1)
+        l_array=l_dataset.GetRasterBand(1).ReadAsArray().astype('float64') 
+        # lst=np.nan_to_num(l_array)
 
         # display the location from where nir band is taken
         logger=self.dlg.tb_otinput
         l1='\nLST band location:'+(lst_band_path)
         logger.append(l1)
 
-    def pb_ot_compute_clicked(self):
-        global file_dir
-        file_dir=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory to save essential intermediate outputs"))
-        # display the location from where the clipped red and nir bands are stored
+    def pb_shape_clicked(self):
+        global shape_input,file_dir,r_dataset,n_dataset,l_dataset
+        global r_array_clipped,n_array_clipped,l_array_clipped
+        shape_filename=QFileDialog.getOpenFileName(self.dlg,'Open shape file','', '*shp')
+        shape_input=shape_filename[0]
         logger=self.dlg.tb_otinput
-        l1='\nChosen directory for saving the tif files:'+file_dir
+        l1='\nSelected shape file:'+shape_input
         logger.append(l1)
 
+
+    def pb_ot_compute_clicked(self):
+        global file_dir,r_dataset,n_dataset,l_dataset
+        global r_array,n_array,l_array
+        global r_array_clipped,n_array_clipped,l_array_clipped
+
+        # clip bands if that option is selected
+        if self.dlg.cb_clip_bands.isChecked():
+            # save the clipped red band image
+            file_dir=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory to save essential intermediate outputs"))
+            # display the location from where the clipped red and nir bands are stored
+            logger=self.dlg.tb_otinput
+            l1='\nChosen directory for saving the tif files:'+file_dir
+            logger.append(l1)
+
+            browse=file_dir+'/'
+            print(browse)
+            folder_01='IITD_SMC_%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))
+            if not os.path.exists(os.path.join(browse, folder_01)):
+                os.makedirs(os.path.join(browse, folder_01))
+                # print("%s is created in directory: %s" % (folder_01, browse))
+            else:
+                folder_create=False
+                while not folder_create:
+                    folder_01='IITD_SMC%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))
+                    if not os.path.exists(os.path.join(browse, folder_01)):
+                        os.makedirs(os.path.join(browse, folder_01))
+                        # print("%s is created in directory: %s" % (folder_01, browse))
+                        folder_create=True
+
+                del folder_create
+
+
+            file_dir=browse+folder_01+'/'
+            # print(file_dir)
+
+            r_raster_input=r_dataset
+            r_raster_output=file_dir+'red_clipped_%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))+'.tif'
+            logger=self.dlg.tb_otinput
+            l1='\nThe clipped red file path is:'+r_raster_output
+            logger.append(l1)
+            gdal.Warp(r_raster_output,r_raster_input,cutlineDSName=shape_input,format='GTiff',cropToCutline=True)
+            r_dataset=gdal.Open(r_raster_output)
+            # red_band=r_dataset.GetRasterBand(1)
+            # r_rows=r_dataset.RasterXSize
+            # r_cols=r_dataset.RasterYSize
+            # r_geoTransform=r_dataset.GetGeoTransform()
+            # r_projection=r_dataset.GetProjection()
+            # r_band= r_dataset.GetRasterBand(1)
+            r_array_clipped=r_dataset.GetRasterBand(1).ReadAsArray().astype('float64')
+            # red=np.nan_to_num(r_array)
+            logger=self.dlg.tb_otinput
+            logger.append('\nRed band clipped and converted in array form')
+
+            n_raster_input=n_dataset
+            n_raster_output=file_dir+'nir_clipped_%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))+'.tif'
+            logger=self.dlg.tb_otinput
+            l1='\nThe clipped nir file path is:'+n_raster_output
+            logger.append(l1)
+            gdal.Warp(n_raster_output,n_raster_input,cutlineDSName=shape_input,format='GTiff',cropToCutline=True)
+            n_dataset=gdal.Open(n_raster_output)
+            nir_band=n_dataset.GetRasterBand(1)
+            n_cols=n_dataset.RasterXSize
+            n_rows=n_dataset.RasterYSize
+            n_geoTransform=n_dataset.GetGeoTransform()
+            n_projection=n_dataset.GetProjection()     
+            n_band=n_dataset.GetRasterBand(1)
+            n_array_clipped=n_dataset.ReadAsArray()
+            # nir=np.nan_to_num(n_array)
+            logger=self.dlg.tb_otinput
+            logger.append('\nNIR band clipped and converted in array form')  
+
+            l_raster_input=l_dataset
+            l_raster_output=file_dir+'lst_clipped_%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))+'.tif'
+            logger=self.dlg.tb_otinput
+            l1='\nThe clipped nir file path is:'+l_raster_output
+            logger.append(l1)
+            gdal.Warp(l_raster_output,l_raster_input,cutlineDSName=shape_input,format='GTiff',cropToCutline=True)
+            l_dataset=gdal.Open(l_raster_output)
+            lst_band=n_dataset.GetRasterBand(1)
+            l_cols=n_dataset.RasterXSize
+            l_rows=n_dataset.RasterYSize
+            l_geoTransform=n_dataset.GetGeoTransform()
+            l_projection=n_dataset.GetProjection()     
+            l_band=n_dataset.GetRasterBand(1)
+            l_array_clipped=n_dataset.ReadAsArray()
+            # lst=np.nan_to_num(l_array)
+            logger=self.dlg.tb_otinput
+            logger.append('\nLST band clipped and converted in array form')  
+
+            logger.append('\nBands clipped as per ROI')
+
+        else:
+            print('Clipping not required')
+            file_dir=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory to save essential intermediate outputs"))
+            # display the location from where the clipped red and nir bands are stored
+            logger=self.dlg.tb_otinput
+            l1='\nChosen directory for saving the tif files:'+file_dir
+            logger.append(l1)
+
+            browse=file_dir+'/'
+            print(browse)
+            folder_01='IITD_SMC_%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))
+            if not os.path.exists(os.path.join(browse, folder_01)):
+                os.makedirs(os.path.join(browse, folder_01))
+                # print("%s is created in directory: %s" % (folder_01, browse))
+            else:
+                folder_create=False
+                while not folder_create:
+                    folder_01='IITD_SMC%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))
+                    if not os.path.exists(os.path.join(browse, folder_01)):
+                        os.makedirs(os.path.join(browse, folder_01))
+                        # print("%s is created in directory: %s" % (folder_01, browse))
+                        folder_create=True
+
+                del folder_create
+
+
+            file_dir=browse+folder_01+'/'
+        print('Path:',file_dir)
+
+        # file_dir=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory to save essential intermediate outputs"))
+        # # display the location from where the clipped red and nir bands are stored
+        # logger=self.dlg.tb_otinput
+        # l1='\nChosen directory for saving the tif files:'+file_dir
+        # logger.append(l1)
+
+        # browse=file_dir
+        # print(browse)
+        # folder_01='IITD_SMC_%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))
+        # if not os.path.exists(os.path.join(browse, folder_01)):
+        #     os.makedirs(os.path.join(browse, folder_01))
+        #     # print("%s is created in directory: %s" % (folder_01, browse))
+        # else:
+        #     folder_create=False
+        #     while not folder_create:
+        #         folder_01='IITD_SMC%s' % (time.strftime("%d%m%Y_") + time.strftime("%H%M%S"))
+        #         if not os.path.exists(os.path.join(browse, folder_01)):
+        #             os.makedirs(os.path.join(browse, folder_01))
+        #             # print("%s is created in directory: %s" % (folder_01, browse))
+        #             folder_create=True
+
+        #     del folder_create
+
+
+        # file_dir=file_dir+folder_01+'/'
+        # print(file_dir)
+        
+        time.sleep(5)
+
+        # select proper array based on whether the bands were clipped or not
+        if self.dlg.cb_clip_bands.isChecked():
+            red=np.nan_to_num(r_array_clipped)
+            nir=np.nan_to_num(n_array_clipped)
+            lst=np.nan_to_num(l_array_clipped)
+
+        else:    
+            red=np.nan_to_num(r_array)
+            nir=np.nan_to_num(n_array)
+            lst=np.nan_to_num(l_array)
+        
+        print(np.shape(red),np.shape(nir),np.shape(lst))
 
         global ndvi,fv,SEE,see_avg
         ndvi_s=0.15
@@ -573,15 +733,18 @@ class SoilMoisture:
         
         # save the computed paramters in form of tif files
         def save_tif(inputRaster, file_path, fileName):
-            global x_pixels,y_pixels,geotransform,ref
-            x_pixels = r_dataset.RasterXSize
-            y_pixels = r_dataset.RasterYSize
+            global x_pixels,y_pixels,geotransform,ref,l_dataset
+            x_pixels = l_dataset.RasterXSize
+            y_pixels = l_dataset.RasterYSize
+            # print(x_pixels,y_pixels,file_path)
 
-            geotransform = r_dataset.GetGeoTransform()
-            ref = r_dataset.GetProjectionRef()
+            geotransform = l_dataset.GetGeoTransform()
+            ref = l_dataset.GetProjectionRef()
+            # print(geotransform,ref)
 
             driver = gdal.GetDriverByName('GTiff')
             dataset = driver.Create(file_path + fileName + '.tif', x_pixels, y_pixels, 1, gdal.GDT_Float32)
+            print(driver,dataset,file_path,fileName)
 
             dataset.SetGeoTransform(geotransform)
             dataset.SetProjection(ref)
@@ -621,9 +784,12 @@ class SoilMoisture:
         
         # compulsory to save
         save_tif(inputRaster=SEE, file_path=file_dir, fileName='see_hr')
+        logger=self.dlg.tb_otinput
+        l1='\nSEE HR saved'
+        logger.append(l1)
         save_tif(inputRaster=see_avg, file_path=file_dir, fileName='see_avg')
         logger=self.dlg.tb_otinput
-        l1='\nSEE and SEE mean saved'
+        l1='\nSEE mean saved'
         logger.append(l1)
 
 
@@ -647,6 +813,7 @@ class SoilMoisture:
 
     def pb_sm_extract_clicked(self):
         global file_dir,diff_lat,diff_long
+        print('SEE and SEE mean taken from:',file_dir)
 
         # lat_file=pd.read_csv(lat_file_path)
         # diff_lat=lat_file.iloc[:,1]
@@ -1168,8 +1335,8 @@ class SoilMoisture:
 
         for i in range(rows):
             for j in range(cols):
-                sm_mat_am[i,j]=sm_file.loc[lat[i]-2][long[j]]
-                sm_mat_pm[i,j]=sm_pm_file.loc[lat[i]-2][long[j]]
+                sm_mat_am[i,j]=sm_file.loc[lat[i]][long[j]]
+                sm_mat_pm[i,j]=sm_pm_file.loc[lat[i]][long[j]]
                 # logger_sm.append(str(sm_mat[i,j]))
                         
         # replacing -9999 with 0; it means no value exists
@@ -1212,16 +1379,17 @@ class SoilMoisture:
         
     def pb_sm_compute_clicked(self):
         
-        data_path=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory where the intermediate outputs (SEE) were saved"))
-        print(data_path)
+        # data_path=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory where the intermediate outputs (SEE) were saved"))
+        # print(data_path)
 
         # data_path=file_dir
         # print(data_path)
 
-        SEE=gdal.Open(data_path+'see_hr.tif')
-        see_avg=gdal.Open(data_path+'see_avg.tif')
-        SEE=SEE.GetRasterBand(1).ReadAsArray()
-        see_avg=see_avg.GetRasterBand(1).ReadAsArray()
+        # SEE1=gdal.Open(data_path+'/see_hr.tif')
+        # see_avg1=gdal.Open(data_path+'/see_avg.tif')
+        # SEE=SEE1.GetRasterBand(1).ReadAsArray()
+        # see_avg=see_avg1.GetRasterBand(1).ReadAsArray()
+        # see_avg=np.nan_to_num(see_avg)
                
         block_size_row=int(SEE.shape[0]/rows)
         block_size_col=int(SEE.shape[1]/cols)
@@ -1236,11 +1404,32 @@ class SoilMoisture:
         SMp=np.zeros((SEE.shape[0],SEE.shape[1]))
         D_SMp_SEE=np.zeros((SEE.shape[0],SEE.shape[1]))
 
+        D_SMp_SEE_nr=np.zeros((SEE.shape[0],SEE.shape[1]))
+        D_SMp_SEE_dr=np.zeros((SEE.shape[0],SEE.shape[1]))
+
         for i in range(SEE.shape[0]):
             for j in range(SEE.shape[1]):
                 SMp[i,j]=(np.pi*sm_rescale[i,j])/(np.arccos(1-2*see_avg[i,j]))
-                D_SMp_SEE[i,j]=(SMp[i,j]/np.pi)/(np.sqrt(SEE[i,j]-SEE[i,j]*SEE[i,j]))
 
+        for i in range(SEE.shape[0]):
+            for j in range(SEE.shape[1]):
+                # D_SMp_SEE[i,j]=(SMp[i,j]/np.pi)/(np.sqrt(SEE[i,j]-SEE[i,j]*SEE[i,j]))
+                D_SMp_SEE_nr[i,j]=(SMp[i,j]/np.pi)
+                D_SMp_SEE_dr[i,j]=(np.sqrt(SEE[i,j]*(1-SEE[i,j])))
+                # D_SMp_SEE_dr[i,j]=SEE[i,j]*(1-SEE[i,j])
+        
+        for i in range(SEE.shape[0]):
+            for j in range(SEE.shape[1]):
+                D_SMp_SEE[i,j]=D_SMp_SEE_nr[i,j]/D_SMp_SEE_dr[i,j]
+        
+        print('SEE:',np.nanmin(SEE),np.nanmax(SEE))
+        print('SEE mean:',np.nanmin(see_avg),np.nanmax(see_avg))
+        print('SMp:',np.nanmin(SMp),np.nanmax(SMp))
+        
+        print('D_SMp_SEE_nr:',np.nanmin(D_SMp_SEE_nr),np.nanmax(D_SMp_SEE_nr))
+        print('D_SMp_SEE_dr:',np.nanmin(D_SMp_SEE_dr),np.nanmax(D_SMp_SEE_dr))
+        print('D_SMp_SEE:',np.nanmin(D_SMp_SEE),np.nanmax(D_SMp_SEE))
+        
         # SM_hr1=np.zeros((lst.shape[0],lst.shape[1]))
         SM_hr2=np.zeros((SEE.shape[0],SEE.shape[1]))
 
@@ -1248,8 +1437,12 @@ class SoilMoisture:
             x_pixels = r_dataset.RasterXSize
             y_pixels = r_dataset.RasterYSize
 
+            # print(x_pixels,y_pixels)
+
             geotransform = r_dataset.GetGeoTransform()
             ref = r_dataset.GetProjectionRef()
+
+            # print(geotransform,ref)
 
             driver = gdal.GetDriverByName('GTiff')
             dataset = driver.Create(file_path + fileName + '.tif', x_pixels, y_pixels, 1, gdal.GDT_Float32)
@@ -1267,19 +1460,40 @@ class SoilMoisture:
         #         SM_hr1[i,j]=sm_rescale[i,j]+(sm_rescale[i,j]/see_avg[i,j]*(SEE[i,j]-see_avg[i,j]))
                 SM_hr2[i,j]=sm_rescale[i,j]+D_SMp_SEE[i,j]*(SEE[i,j]-see_avg[i,j])
             
+        
+        for i in range(SEE.shape[0]-1):
+            for j in range(SEE.shape[1]-1):
+                if(SM_hr2[i,j]<0):
+                    if(i<SEE.shape[0] & j<SEE.shape[1]):
+                        SM_hr2[i,j]=np.where(1<SM_hr2[i+1,j+1]>0.,SM_hr2[i+1,j+1],0.1)
+                    else:
+                        SM_hr2[i,j]=np.where(1<SM_hr2[i-1,j-1]>0.,SM_hr2[i-1,j-1],0.1)
+                if(SM_hr2[i,j]>1):
+                    if(i<SEE.shape[0]):
+                        SM_hr2[i,j]=np.where(0>SM_hr2[i+1,j+1]<1.,SM_hr2[i+1,j+1],1)
+                    else:
+                        SM_hr2[i,j]=np.where(0>SM_hr2[i-1,j-1]<1.,SM_hr2[i-1,j-1],1)
+
         logger_sm=self.dlg.tb_sminput
         # l1='\nSoil moisture estimated at high resolution: '+str(SM_hr2)
-        l1='\nSoil moisture estimated at high resolution'
+        l1='\nSoil moisture estimated at high resolution. SM saved.'
         logger_sm.append(l1)
 
-        print(SM_hr2)
+        # print(SM_hr2)
+        
+        print(np.nanmin(SM_hr2),np.nanmax(SM_hr2))
             
         
-        file_dir1=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory to save the soil moisture output"))
+        # file_dir1=str(QFileDialog.getExistingDirectory(self.dlg,"Select the output directory to save the soil moisture output"))
+        file_dir1=file_dir
         # save_tif(inputRaster=SM_hr1, file_path=file_dir, fileName=sm_filename+'_sm1')
         # f1=sm_filename+'_sm1.tif'
-        save_tif(inputRaster=SM_hr2, file_path=file_dir1, fileName='sm_hr')
-        save_tif(inputRaster=sm_rescale, file_path=file_dir1, fileName='sm_lr')
+        save_tif(inputRaster=SM_hr2, file_path=file_dir1+'/', fileName='sm_hr')
+        save_tif(inputRaster=sm_rescale, file_path=file_dir1+'/', fileName='sm_lr')
+        save_tif(inputRaster=D_SMp_SEE_nr, file_path=file_dir1+'/', fileName='D_SMp_SEE_nr')
+        save_tif(inputRaster=D_SMp_SEE_dr, file_path=file_dir1+'/', fileName='D_SMp_SEE_dr')
+        save_tif(inputRaster=D_SMp_SEE, file_path=file_dir1+'/', fileName='D_SMp_SEE')
+        save_tif(inputRaster=SMp, file_path=file_dir1+'/', fileName='SMp')
         # f2=smap_file+'_sm2.tif'
 
 
@@ -1287,7 +1501,7 @@ class SoilMoisture:
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&SMC'),
+                self.tr(u'&Q-DAI'),
                 action)
             self.iface.removeToolBarIcon(action)
 
@@ -1315,7 +1529,6 @@ class SoilMoisture:
             # substitute with your code.
             pass
 
-
     def ini_display(self):
             # For terminal outputs
             # tb_display is name of the text display browser
@@ -1325,11 +1538,11 @@ class SoilMoisture:
                 '\nThis plugin takes the coarse resolution soil moisture content and downscales it to high spatial resolution.' 
                 '\nFollow the below given steps to use the plugin:'
                 '\n1. Select the corrected Optical (Red and NIR) and Thermal (LST) bands.'
-                '\n2. If bands need to be clipped, select the proper shape file by clicking the Clip bands checkbox.'
+                '\n2. If bands need to be clipped, first check the Clip bands checkbox and then select the proper shape file.'
                 '\n3. Select the checkboxes to save the bands, intermediate parameters'
                 '\n4. Choose the output directory where all the clipped bands/ parameters will be saved'
                 '\n5. Click on Compute all parameters button to compute the intermediate parameters. These will be used along with soil moisture product to achieve the final output'
-                '\n\n****************************************'
+                '\n**************************************'
                 '\nOutputs based on the selections made by the user:'
             )
 
@@ -1342,7 +1555,7 @@ class SoilMoisture:
                 '\nLatitude extent: 28.316 28.92'
                 '\nLongitude extent: 76.7 77.49'
                 '\n3. Click on Extract for given location (LR) button to get the soil moisture for ROI'
-                '\n\n**************************************'
+                '\n**************************************'
                 '\nOutputs based on the selections made by the user:'
             )
               
