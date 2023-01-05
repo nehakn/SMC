@@ -6,7 +6,7 @@
 name=SMC
 qgisMinimumVersion=3.0
 description=It computes soil moisture at high resolution using the SMAP/SMOS 36km coarse resolution global soil moisture data
-version=0.1
+version=0.1.1
 author=Neha K. Nawandar
 email=nehanawandar@gmail.com
 
@@ -29,7 +29,7 @@ homepage=https://github.com/nehakn/SMC/blob/main/README.txt
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
