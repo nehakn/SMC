@@ -3,11 +3,17 @@ Soil moisture computation Plugin (Based on the DisPATCh algorithm)
 
 Design of the GUI using Qt Creator
 
-<img width="304" alt="image" src="https://github.com/nehakn/SMC/assets/105640974/eb9906f0-e3ff-43ca-8f8e-5c66652795c6">
+![qtcreator_ot](https://github.com/nehakn/SMC/assets/105640974/9d03cbe6-0ab5-4bc1-9aa5-4b219b18cfff)
+
 The optical and thermal tab in Qt creator
 
-![image](https://github.com/nehakn/SMC/assets/105640974/24180105-06af-4715-a72c-7d414779f562)
+![qtcreator_sm](https://github.com/nehakn/SMC/assets/105640974/8898a8ae-87fd-4b45-94b8-4a0edfb7f529)
+
 SM input tab in Qt Creator
+
+![qdai_from_qgis_2](https://github.com/nehakn/SMC/assets/105640974/77300d0d-4085-46c1-a326-431fa56dc131)
+
+Q-DAI from QGIS software
 
 ![plugin_ot_page](https://user-images.githubusercontent.com/105640974/205916873-c4e6479d-5e09-4634-aad4-b525d77588af.jpg)
 
