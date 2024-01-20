@@ -1,6 +1,11 @@
 # SMC
 Soil moisture computation Plugin (Based on the DisPATCh algorithm)
 
+Design of the GUI using Qt Creator
+
+<img width="304" alt="image" src="https://github.com/nehakn/SMC/assets/105640974/eb9906f0-e3ff-43ca-8f8e-5c66652795c6">
+The optical and thermal tab in Qt creator
+
 ![plugin_ot_page](https://user-images.githubusercontent.com/105640974/205916873-c4e6479d-5e09-4634-aad4-b525d77588af.jpg)
 
 Optical/ thermal input upload, intermediate parameters computation
