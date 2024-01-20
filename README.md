@@ -1,11 +1,11 @@
 # SMC
-Soil moisture computation Plugin (Based on the DisPATCh algorithm)
+##Soil moisture computation Plugin (Based on the DisPATCh algorithm)
 
-Design of the GUI using Qt Creator
+##Design of the GUI using Qt Creator
 
 ![qtcreator_ot](https://github.com/nehakn/SMC/assets/105640974/9d03cbe6-0ab5-4bc1-9aa5-4b219b18cfff)
 
-The optical and thermal tab in Qt creator
+##The optical and thermal tab in Qt creator
 
 ![qtcreator_sm](https://github.com/nehakn/SMC/assets/105640974/8898a8ae-87fd-4b45-94b8-4a0edfb7f529)
 
@@ -26,7 +26,6 @@ Q-DAI from QGIS software
 
 Q-DAI plugin: Operations in the O/T tab
 
-![ot_compute_parameters](https://github.com/nehakn/SMC/assets/105640974/ca261434-7cf1-437b-9b3b-d5b1aac1aca0)
 ![sm_enter_extent](https://github.com/nehakn/SMC/assets/105640974/86f127c8-5411-4662-bd2e-0cb1a843e97c)
 ![sm_extract_for_extent](https://github.com/nehakn/SMC/assets/105640974/1a496183-bcea-415e-a83c-1d3d6cd3d7b0)
 ![sm_open_directory](https://github.com/nehakn/SMC/assets/105640974/52533158-dda8-463f-b0d6-cc0d0b2448d9)
